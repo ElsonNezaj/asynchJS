@@ -11,7 +11,7 @@ const renderError = function (msg) {
 const renderCountry = function (data, className = '') {
   const html = `
             <article class="country ${className}">
-            <img class="country__img" src="${data.flags.png}" />
+            <img class="country__img" src="${data.flag}" />
             <div class="country__data">
             <h3 class="country__name">${data.name.common}</h3>
             <h4 class="country__region">${data.region}</h4>
@@ -316,48 +316,75 @@ const getJson = function (url, errorMsg = 'Something went wrong!') {
 //////////////////////////////////////////////
 // Challenge #2
 /////////////////////////////////////////////
-const wait = function (seconds) {
-  return new Promise(function (resolve) {
-    setTimeout(resolve, seconds * 1000)
-  })
-}
+// const wait = function (seconds) {
+//   return new Promise(function (resolve) {
+//     setTimeout(resolve, seconds * 1000)
+//   })
+// }
 
-const imgContainer = document.querySelector('.images')
+// const imgContainer = document.querySelector('.images')
 
-const createImage = function (imgPath) {
+// const createImage = function (imgPath) {
+//   return new Promise(function (resolve, reject) {
+//     const img = document.createElement('img')
+//     img.src = imgPath
+
+//     img.addEventListener('load', function () {
+//       imgContainer.append(img)
+//       resolve(img)
+//     })
+
+//     img.addEventListener('error', function () {
+//       reject(new Error('Image not found'))
+//     })
+//   })
+// }
+
+// let current
+
+// createImage('img/img-1.jpg')
+//   .then((img) => {
+//     current = img
+//     console.log('Image 1 loaded')
+//     return wait(2)
+//   })
+//   .then(() => {
+//     current.style.display = 'none'
+//     return createImage('img/img-2.jpg')
+//   })
+//   .then((img) => {
+//     current = img
+//     console.log('Image 2 loaded')
+//     return wait(2)
+//   })
+//   .then(() => {
+//     current.style.display = 'none'
+//   })
+//   .catch((err) => console.error(err))
+
+//////////////////////////////////////////////
+// Consuming Promises
+/////////////////////////////////////////////
+const getPosition = function () {
   return new Promise(function (resolve, reject) {
-    const img = document.createElement('img')
-    img.src = imgPath
-
-    img.addEventListener('load', function () {
-      imgContainer.append(img)
-      resolve(img)
-    })
-
-    img.addEventListener('error', function () {
-      reject(new Error('Image not found'))
-    })
+    navigator.geolocation.getCurrentPosition(resolve, reject)
   })
 }
 
-let current
-
-createImage('img/img-1.jpg')
-  .then((img) => {
-    current = img
-    console.log('Image 1 loaded')
-    return wait(2)
-  })
-  .then(() => {
-    current.style.display = 'none'
-    return createImage('img/img-2.jpg')
-  })
-  .then((img) => {
-    current = img
-    console.log('Image 2 loaded')
-    return wait(2)
-  })
-  .then(() => {
-    current.style.display = 'none'
-  })
-  .catch((err) => console.error(err))
+const whereAmI = async function () {
+  // Geolocation
+  const pos = await getPosition()
+  const { latitude: lat, longitude: lng } = pos.coords
+  // Reverse geo data
+  const geo = await fetch(`https://geocode.xyz/${lat},${lng}?geoit=json`)
+  const geoData = await geo.json()
+  console.log(geoData)
+  // Country data
+  const res = await fetch(
+    `https://restcountries.com/v3.1/name/${geoData.country}`
+  )
+  const data = await res.json()
+  renderCountry(data[0])
+}
+whereAmI()
+console.log('First')
