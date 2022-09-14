@@ -365,26 +365,195 @@ const getJson = function (url, errorMsg = 'Something went wrong!') {
 //////////////////////////////////////////////
 // Consuming Promises
 /////////////////////////////////////////////
-const getPosition = function () {
-  return new Promise(function (resolve, reject) {
-    navigator.geolocation.getCurrentPosition(resolve, reject)
+// const getPosition = function () {
+//   return new Promise(function (resolve, reject) {
+//     navigator.geolocation.getCurrentPosition(resolve, reject)
+//   })
+// }
+
+// const whereAmI = async function () {
+//   try {
+//     // Geolocation
+//     const pos = await getPosition()
+//     const { latitude: lat, longitude: lng } = pos.coords
+//     // Reverse geo data
+//     const geo = await fetch(`https://geocode.xyz/${lat},${lng}?geoit=json`)
+//     if (!geo.ok) throw new Error('Problem getting location data')
+
+//     const geoData = await geo.json()
+//     // Country data
+//     const res = await fetch(
+//       `https://restcountries.com/v3.1/name/${geoData.country}`
+//     )
+//     if (!res.ok) throw new Error('Problem getting country')
+
+//     const data = await res.json()
+//     renderCountry(data[0])
+
+//     return `2: You are in ${geoData.city}, ${geoData.country}`
+//   } catch (err) {
+//     renderError(`Something went wrong ${err.message}`)
+
+//     throw err
+//   }
+// }
+
+// console.log('1: Will get location')
+// ;(async function () {
+//   try {
+//     const city = await whereAmI()
+//     console.log(city)
+//   } catch (err) {
+//     console.error(`2: ${err.message}`)
+//   }
+//   console.log('3: Finished getting location')
+// })()
+
+//////////////////////////////////////////////
+// RUNNING PROMISES IN PARALLEL
+/////////////////////////////////////////////
+// const get3Countries = async function (c1, c2, c3) {
+//   try {
+//     // const [data1] = await getJson(`https://restcountries.com/v3.1/name/${c1}`)
+//     // const [data2] = await getJson(`https://restcountries.com/v3.1/name/${c2}`)
+//     // const [data3] = await getJson(`https://restcountries.com/v3.1/name/${c3}`)
+//     const data = await Promise.all([
+//       getJson(`https://restcountries.com/v3.1/name/${c1}`),
+//       getJson(`https://restcountries.com/v3.1/name/${c2}`),
+//       getJson(`https://restcountries.com/v3.1/name/${c3}`),
+//     ])
+
+//     console.log(data.map((d) => d[0].capital))
+//   } catch (err) {
+//     console.error(err)
+//   }
+// }
+// get3Countries('portugal', 'canada', 'tanzania')
+
+//////////////////////////////////////////////
+// RACE, ALLSETTLED , ANY
+/////////////////////////////////////////////
+
+// Promise.race
+// ;(async function () {
+//   const res = await Promise.race([
+//     getJson(`https://restcountries.com/v3.1/name/italy`),
+//     getJson(`https://restcountries.com/v3.1/name/egypt`),
+//     getJson(`https://restcountries.com/v3.1/name/mexico`),
+//   ])
+//   console.log(res[0])
+// })()
+
+// const timeout = function (s) {
+//   return new Promise(function (_, reject) {
+//     setTimeout(function () {
+//       reject(new Error('Request took too long'))
+//     }, s * 1000)
+//   })
+// }
+
+// Promise.race([
+//   getJson(`https://restcountries.com/v3.1/name/tanzania`),
+//   timeout(5),
+// ])
+//   .then((res) => console.log(res[0]))
+//   .catch((err) => console.error(err))
+
+// // Promise.allSettled
+// Promise.allSettled([
+//   Promise.resolve('Success'),
+//   Promise.reject('ERROR'),
+//   Promise.resolve('Success'),
+// ]).then((res) => console.log(res))
+
+// // Promise.any
+
+// Promise.any([
+//   Promise.resolve('Success'),
+//   Promise.reject('ERROR'),
+//   Promise.resolve('Success'),
+// ]).then((res) => console.log(res))
+
+//////////////////////////////////////////////
+// Challenge #3
+/////////////////////////////////////////////
+const wait = function (seconds) {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, seconds * 1000)
   })
 }
 
-const whereAmI = async function () {
-  // Geolocation
-  const pos = await getPosition()
-  const { latitude: lat, longitude: lng } = pos.coords
-  // Reverse geo data
-  const geo = await fetch(`https://geocode.xyz/${lat},${lng}?geoit=json`)
-  const geoData = await geo.json()
-  console.log(geoData)
-  // Country data
-  const res = await fetch(
-    `https://restcountries.com/v3.1/name/${geoData.country}`
-  )
-  const data = await res.json()
-  renderCountry(data[0])
+const imgContainer = document.querySelector('.images')
+
+const createImage = function (imgPath) {
+  return new Promise(function (resolve, reject) {
+    const img = document.createElement('img')
+    img.src = imgPath
+
+    img.addEventListener('load', function () {
+      imgContainer.append(img)
+      resolve(img)
+    })
+
+    img.addEventListener('error', function () {
+      reject(new Error('Image not found'))
+    })
+  })
 }
-whereAmI()
-console.log('First')
+
+let current
+
+// createImage('img/img-1.jpg')
+//   .then((img) => {
+//     current = img
+//     console.log('Image 1 loaded')
+//     return wait(2)
+//   })
+//   .then(() => {
+//     current.style.display = 'none'
+//     return createImage('img/img-2.jpg')
+//   })
+//   .then((img) => {
+//     current = img
+//     console.log('Image 2 loaded')
+//     return wait(2)
+//   })
+//   .then(() => {
+//     current.style.display = 'none'
+//   })
+//   .catch((err) => console.error(err))
+
+// let image
+
+// const img = async function (nr) {
+//   image = await createImage(`img/img-${nr}.jpg`)
+//   current = image
+//   await wait(2)
+//   current.style.display = 'none'
+// }
+
+// const loadNPause = async function () {
+//   try {
+//     await img(1)
+//     await img(2)
+//     await img(3)
+//   } catch (err) {
+//     console.error(err)
+//   }
+// }
+// loadNPause()
+
+const loadAll = async function (imgArr) {
+  try {
+    const imgs = imgArr.map(async (img) => await createImage(img))
+
+    const imgsEL = await Promise.all(imgs)
+    console.log(imgsEL)
+
+    imgsEL.forEach((img) => img.classList.add('paralell'))
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+loadAll(['img/img-1.jpg', 'img/img-2.jpg', 'img/img-3.jpg'])
